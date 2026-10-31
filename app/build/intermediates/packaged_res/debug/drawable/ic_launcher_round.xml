@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background Gelap iOS -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#1C1C1E" />
+        </shape>
+    </item>
+    <!-- Lingkaran Luar -->
+    <item
+        android:bottom="12dp"
+        android:left="12dp"
+        android:right="12dp"
+        android:top="12dp">
+        <shape android:shape="oval">
+            <stroke
+                android:width="3dp"
+                android:color="#FFFFFF" />
+        </shape>
+    </item>
+    <!-- Titik Tengah -->
+    <item
+        android:bottom="24dp"
+        android:left="24dp"
+        android:right="24dp"
+        android:top="24dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

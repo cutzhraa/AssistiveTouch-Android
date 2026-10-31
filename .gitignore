@@ -1,0 +1,18 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Tambahan untuk membersihkan SDK & Toolset lokal yang ikut ter-push
+/build-tools/
+/cmdline-tools/
+/gradle-8.5/
+/licenses/
+/platform-tools/
+/platforms/
+knownPackages
