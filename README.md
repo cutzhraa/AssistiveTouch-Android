@@ -2,6 +2,9 @@
 
 A custom Android AssistiveTouch application built using Kotlin and Android Accessibility Services, designed to mirror the iOS AssistiveTouch user interface and system actions.
 
+## 📥 Download
+Get the ready-to-install APK directly from the [Latest Release](https://github.com/cutzhraa/AssistiveTouch-Android/releases/latest).
+
 ## ✨ Features
 - **iOS Aesthetic & Snap-to-Edge**: Floating concentric circle button with smooth snap-to-edge behavior.
 - **3x3 Grid Menu**: Quick access to Home, Back, Recent Apps, Notifications, Quick Settings, Screenshot, Lock Screen, and Voice Assistant.
