@@ -38,11 +38,13 @@ class FloatingService : AccessibilityService() {
         getSharedPreferences("assistive_touch_prefs", Context.MODE_PRIVATE)
     }
 
-    // Menyimpan package name aplikasi favorit (5 slot)
-    private val favoriteApps = Array<String?>(5) { null }
+    // Menyimpan package name aplikasi favorit (8 slot)
+    private val favoriteApps = Array<String?>(8) { null }
 
     private val slotIds = arrayOf(
-        R.id.btn_fav_1, R.id.btn_fav_2, R.id.btn_fav_3, R.id.btn_fav_4, R.id.btn_fav_5
+        R.id.btn_fav_1, R.id.btn_fav_2, R.id.btn_fav_3, 
+        R.id.btn_fav_4, R.id.btn_fav_5, R.id.btn_fav_6, 
+        R.id.btn_fav_7, R.id.btn_fav_8
     )
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
@@ -95,7 +97,7 @@ class FloatingService : AccessibilityService() {
 
     private fun loadFavoriteApps() {
         val pm = packageManager
-        for (i in 0 until 5) {
+        for (i in 0 until 8) {
             val savedPkg = prefs.getString("fav_slot_$i", null)
             favoriteApps[i] = savedPkg
 
@@ -295,7 +297,7 @@ class FloatingService : AccessibilityService() {
         for (i in slotIds.indices) {
             val slotView = favoriteMenuView.findViewById<View>(slotIds[i])
 
-            slotView.setOnClickListener {
+            slotView?.setOnClickListener {
                 val pkg = favoriteApps[i]
                 if (pkg == null) {
                     openAppPicker(i, slotIds[i])
@@ -309,7 +311,7 @@ class FloatingService : AccessibilityService() {
                 }
             }
 
-            slotView.setOnLongClickListener {
+            slotView?.setOnLongClickListener {
                 if (favoriteApps[i] != null) {
                     showManageSlotDialog(i, slotIds[i])
                 }
@@ -343,8 +345,8 @@ class FloatingService : AccessibilityService() {
         saveFavoriteApp(slotIndex, null)
 
         val slotView = favoriteMenuView.findViewById<View>(slotId)
-        val imgIcon = slotView.findViewById<ImageView>(R.id.img_fav_icon)
-        val txtLabel = slotView.findViewById<TextView>(R.id.txt_fav_label)
+        val imgIcon = slotView?.findViewById<ImageView>(R.id.img_fav_icon)
+        val txtLabel = slotView?.findViewById<TextView>(R.id.txt_fav_label)
 
         imgIcon?.setImageResource(R.drawable.ic_star)
         txtLabel?.text = "Tambah"
@@ -376,8 +378,8 @@ class FloatingService : AccessibilityService() {
             saveFavoriteApp(slotIndex, selectedPackage)
 
             val slotView = favoriteMenuView.findViewById<View>(slotId)
-            val imgIcon = slotView.findViewById<ImageView>(R.id.img_fav_icon)
-            val txtLabel = slotView.findViewById<TextView>(R.id.txt_fav_label)
+            val imgIcon = slotView?.findViewById<ImageView>(R.id.img_fav_icon)
+            val txtLabel = slotView?.findViewById<TextView>(R.id.txt_fav_label)
 
             try {
                 val iconDrawable = pm.getApplicationIcon(selectedPackage)

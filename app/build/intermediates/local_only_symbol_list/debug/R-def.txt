@@ -21,6 +21,9 @@ id btn_fav_2
 id btn_fav_3
 id btn_fav_4
 id btn_fav_5
+id btn_fav_6
+id btn_fav_7
+id btn_fav_8
 id btn_fav_back_to_main
 id btn_floating
 id btn_home
