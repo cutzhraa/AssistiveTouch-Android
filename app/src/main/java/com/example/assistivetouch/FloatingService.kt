@@ -2,7 +2,9 @@ package com.example.assistivetouch
 
 import android.accessibilityservice.AccessibilityService
 import android.app.AlertDialog
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.graphics.Point
@@ -31,14 +33,23 @@ class FloatingService : AccessibilityService() {
     private var isFavoriteMenuOpen = false
     private var screenWidth = 0
 
+    // SharedPreferences untuk penyimpanan data favorit secara permanen
+    private val prefs: SharedPreferences by lazy {
+        getSharedPreferences("assistive_touch_prefs", Context.MODE_PRIVATE)
+    }
+
     // Menyimpan package name aplikasi favorit (5 slot)
     private val favoriteApps = Array<String?>(5) { null }
+
+    private val slotIds = arrayOf(
+        R.id.btn_fav_1, R.id.btn_fav_2, R.id.btn_fav_3, R.id.btn_fav_4, R.id.btn_fav_5
+    )
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {}
     override fun onInterrupt() {}
 
-    override fun onCreate() {
-        super.onCreate()
+    override fun onServiceConnected() {
+        super.onServiceConnected()
 
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
@@ -75,7 +86,50 @@ class FloatingService : AccessibilityService() {
         setupTouchAndClickListener()
         setupMenuActions()
         setupFavoriteMenuActions()
+
+        // Load data favorit dari SharedPreferences dan perbarui tampilan UI
+        loadFavoriteApps()
     }
+
+    // --- LOGIKA SHAREDPREFERENCES ---
+
+    private fun loadFavoriteApps() {
+        val pm = packageManager
+        for (i in 0 until 5) {
+            val savedPkg = prefs.getString("fav_slot_$i", null)
+            favoriteApps[i] = savedPkg
+
+            if (savedPkg != null) {
+                val slotView = favoriteMenuView.findViewById<View>(slotIds[i])
+                val imgIcon = slotView.findViewById<ImageView>(R.id.img_fav_icon)
+                val txtLabel = slotView.findViewById<TextView>(R.id.txt_fav_label)
+
+                try {
+                    val appInfo = pm.getApplicationInfo(savedPkg, 0)
+                    val iconDrawable = pm.getApplicationIcon(appInfo)
+                    val appName = pm.getApplicationLabel(appInfo).toString()
+
+                    imgIcon?.setImageDrawable(iconDrawable)
+                    txtLabel?.text = appName
+                    txtLabel?.setTextColor(android.graphics.Color.WHITE)
+                } catch (_: Exception) {
+                    // Jika aplikasi sudah di-uninstall, reset slot tersebut
+                    saveFavoriteApp(i, null)
+                }
+            }
+        }
+    }
+
+    private fun saveFavoriteApp(slotIndex: Int, packageName: String?) {
+        favoriteApps[slotIndex] = packageName
+        if (packageName != null) {
+            prefs.edit().putString("fav_slot_$slotIndex", packageName).apply()
+        } else {
+            prefs.edit().remove("fav_slot_$slotIndex").apply()
+        }
+    }
+
+    // --- TOUCH & MENU LISTENERS ---
 
     private fun setupTouchAndClickListener() {
         val btnFloating = floatingView.findViewById<View>(R.id.btn_floating)
@@ -238,10 +292,6 @@ class FloatingService : AccessibilityService() {
             toggleMenu()
         }
 
-        val slotIds = arrayOf(
-            R.id.btn_fav_1, R.id.btn_fav_2, R.id.btn_fav_3, R.id.btn_fav_4, R.id.btn_fav_5
-        )
-
         for (i in slotIds.indices) {
             val slotView = favoriteMenuView.findViewById<View>(slotIds[i])
 
@@ -290,7 +340,7 @@ class FloatingService : AccessibilityService() {
     }
 
     private fun removeFavoriteApp(slotIndex: Int, slotId: Int) {
-        favoriteApps[slotIndex] = null
+        saveFavoriteApp(slotIndex, null)
 
         val slotView = favoriteMenuView.findViewById<View>(slotId)
         val imgIcon = slotView.findViewById<ImageView>(R.id.img_fav_icon)
@@ -319,11 +369,11 @@ class FloatingService : AccessibilityService() {
         builder.setTitle("Pilih Aplikasi Favorit")
         builder.setAdapter(
             ArrayAdapter(this, android.R.layout.simple_list_item_1, appNames)
-        ) { dialog, which ->
+        ) { _, which ->
             val selectedPackage = packageNames[which]
             val selectedName = appNames[which]
 
-            favoriteApps[slotIndex] = selectedPackage
+            saveFavoriteApp(slotIndex, selectedPackage)
 
             val slotView = favoriteMenuView.findViewById<View>(slotId)
             val imgIcon = slotView.findViewById<ImageView>(R.id.img_fav_icon)
@@ -350,10 +400,33 @@ class FloatingService : AccessibilityService() {
         dialog.show()
     }
 
+    // --- PEMBERSIHAN OVERLAY UNTUK ONDESTROY & ONUNBIND ---
+
+    private fun removeAllViews() {
+        try {
+            if (::floatingView.isInitialized && floatingView.windowToken != null) {
+                windowManager.removeView(floatingView)
+            }
+            if (isMenuOpen && ::menuView.isInitialized && menuView.windowToken != null) {
+                windowManager.removeView(menuView)
+                isMenuOpen = false
+            }
+            if (isFavoriteMenuOpen && ::favoriteMenuView.isInitialized && favoriteMenuView.windowToken != null) {
+                windowManager.removeView(favoriteMenuView)
+                isFavoriteMenuOpen = false
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        removeAllViews()
+        return super.onUnbind(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        if (::floatingView.isInitialized) windowManager.removeView(floatingView)
-        if (isMenuOpen && ::menuView.isInitialized) windowManager.removeView(menuView)
-        if (isFavoriteMenuOpen && ::favoriteMenuView.isInitialized) windowManager.removeView(favoriteMenuView)
+        removeAllViews()
     }
 }
